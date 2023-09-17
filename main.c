@@ -89,7 +89,8 @@ encrypt(char *buf, size_t buf_size)
 
         /* Ensure we don't cause any overflows */
         while (((current_pos + step) >= buf_size) && step > 1)
-            step /= 2;
+            /* Essentially divide the step by 2, just faster */
+            step >>= 1;
     }
 }
 
