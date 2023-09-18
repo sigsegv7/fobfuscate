@@ -37,7 +37,10 @@ accel_invert128:
     movq %rdi, %rax
     movdqu (%rax), %xmm0
 
-    /* Set %xmm1 to all 1s and emulate NOT for %xmm0 */
+    /*
+     * Set %xmm1 to all 1s and emulate NOT for %xmm0.
+     * Result of inversion will be stored in %xmm1.
+     */
     pcmpeqb %xmm1, %xmm1
     pxor %xmm0, %xmm1
 
