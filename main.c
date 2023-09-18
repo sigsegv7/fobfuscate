@@ -33,6 +33,10 @@
 #include <assert.h>
 #include <unistd.h>
 
+#if __BYTE_ORDER__ != __ORDER_LITTLE_ENDIAN__
+#error "Big endian machines not supported yet"
+#endif
+
 #define flip_block(TMP_VAR, TYPE, BUF, POS)         \
         TMP_VAR = *(TYPE *)&BUF[POS];               \
         TMP_VAR = ~TMP_VAR;                         \
