@@ -27,13 +27,13 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
- .section .text
- .globl accel_invert128
+.section .text
+.globl accel_invert128
 
  /*
   * accel_invert128(uint64_t addr)
   */
- accel_invert128:
+accel_invert128:
     movq %rdi, %rax
     movdqu (%rax), %xmm0
 
