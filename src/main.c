@@ -152,6 +152,11 @@ encrypt(const struct cpu_info *info, char *buf, size_t buf_size)
             assert((step & 1) == 0 && step <= 16);
         }
 
+        /* Ensure we don't cause any overflows */
+        while (((current_pos + step) >= buf_size) && step > 1)
+            /* Essentially divide the step by 2, just faster */
+            step >>= 1;
+
         switch (step) {
         case 16:
             accel_invert128((uintptr_t)buf + current_pos);
@@ -171,11 +176,6 @@ encrypt(const struct cpu_info *info, char *buf, size_t buf_size)
         }
 
         current_pos += step;
-
-        /* Ensure we don't cause any overflows */
-        while (((current_pos + step) >= buf_size) && step > 1)
-            /* Essentially divide the step by 2, just faster */
-            step >>= 1;
     }
 }
 
