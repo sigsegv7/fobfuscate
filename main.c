@@ -80,12 +80,6 @@ writeback_file(const char *fname, const char *buf, size_t buf_size)
     fclose(fp);
 }
 
-static inline uint64_t
-mask(size_t n)
-{
-    return (1 << n) - 1;
-}
-
 static char *
 encrypt(char *buf, size_t buf_size)
 {
