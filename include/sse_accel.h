@@ -32,6 +32,7 @@
 
 #include <stdint.h>
 
+__attribute__((naked))
 void accel_invert128(uint64_t addr);
 
 #endif  /* ACCEL_H */
