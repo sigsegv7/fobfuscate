@@ -35,7 +35,6 @@
 
 #define flip_block(TMP_VAR, TYPE, BUF, POS)         \
         TMP_VAR = *(TYPE *)&BUF[POS];               \
-        TMP_VAR &= ~mask(step*8);                    \
         TMP_VAR = ~TMP_VAR;                         \
         *(TYPE *)&BUF[POS] = TMP_VAR;               \
 
