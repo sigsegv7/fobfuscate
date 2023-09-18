@@ -34,15 +34,10 @@
   * accel_invert128(uint64_t addr)
   */
 accel_invert128:
-    movq %rdi, %rax
-    movdqu (%rax), %xmm0
+    movq %rdi, %rax         // Store first argument in %rax
+    movdqu (%rax), %xmm0    // Read 128 bits from ptr in %rax into %xmm0
 
-    /*
-     * Set %xmm1 to all 1s and emulate NOT for %xmm0.
-     * Result of inversion will be stored in %xmm1.
-     */
-    pcmpeqb %xmm1, %xmm1
-    pxor %xmm0, %xmm1
-
-    movdqu %xmm1, (%rax)
+    pcmpeqb %xmm1, %xmm1    // Set %xmm1 to all 1s
+    pxor %xmm0, %xmm1       // NOT %xmm0; result stored in %xmm1
+    movdqu %xmm1, (%rax)    // Writeback the result
     retq
