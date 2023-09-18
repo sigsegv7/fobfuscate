@@ -30,12 +30,22 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <stdbool.h>
 #include <assert.h>
 #include <unistd.h>
+#include <info.h>
+#if defined(__x86_64__)
+#include <sse_accel.h>
+#endif  /* defined(__x86_64__) */
 
 #if __BYTE_ORDER__ != __ORDER_LITTLE_ENDIAN__
 #error "Big endian machines not supported yet"
 #endif
+
+#define cpuid(level, a, b, c, d)					\
+  __asm__ __volatile__ ("cpuid\n\t"					\
+			: "=a" (a), "=b" (b), "=c" (c), "=d" (d)	\
+			: "0" (level))
 
 #define flip_block(TMP_VAR, TYPE, BUF, POS)         \
         TMP_VAR = *(TYPE *)&BUF[POS];               \
@@ -80,8 +90,48 @@ writeback_file(const char *fname, const char *buf, size_t buf_size)
     fclose(fp);
 }
 
+#if defined(__x86_64__)
+static inline bool
+is_sse3_supported(void)
+{
+    uint32_t ecx, unused;
+
+    cpuid(0x0000001, unused, unused, ecx, unused);
+    return (ecx & (1 << 0)) != 0;
+}
+
+static inline bool
+is_sse2_supported(void)
+{
+    uint32_t edx, unused;
+    cpuid(0x0000001, unused, unused, unused, edx);
+    return (edx & (1 << 26)) != 0;
+}
+
+static void
+amd64_cpu_tests(struct cpu_info *info)
+{
+    bool sse3_supported;
+
+    sse3_supported = false;
+
+    if (is_sse3_supported()) {
+        printf("[?]: SSE3 supported, may use as optimization\n");
+        sse3_supported = true;
+        info->has_sse3 = 1;
+    }
+
+    if (!sse3_supported) {
+        if (is_sse2_supported()) {
+            printf("[?]: SSE2 supported, may use as optimization\n");
+            info->has_sse2 = 1;
+        }
+    }
+}
+#endif  /* defined(__x86_64__) */
+
 static char *
-encrypt(char *buf, size_t buf_size)
+encrypt(const struct cpu_info *info, char *buf, size_t buf_size)
 {
     size_t current_pos;
     size_t step;
@@ -90,13 +140,22 @@ encrypt(char *buf, size_t buf_size)
     current_pos = 0;
     step = 8;           /* Start at 8 bytes (64 bits) */
 
+#if defined(__x86_64__)
+    if (info->has_sse2 || info->has_sse3) {
+        step += 8;      /* Start at 128 bits */
+    }
+#endif  /* defined(__x86_64__) */
+
     while (current_pos < buf_size) {
-        /* Ensure we aren't over 8 bytes and a power of two */
+        /* Ensure we aren't over 16 bytes and a power of two */
         if (step != 1) {
-            assert((step & 1) == 0 && step <= 8);
+            assert((step & 1) == 0 && step <= 16);
         }
 
         switch (step) {
+        case 16:
+            accel_invert128((uintptr_t)buf + current_pos);
+            break;
         case 8:
             flip_block(tmp, uint64_t, buf, current_pos);
             break;
@@ -125,14 +184,19 @@ main(int argc, const char **argv)
 {
     size_t buf_size;
     char *buf;
+    struct cpu_info info = { 0 };
 
     if (argc < 2) {
         fprintf(stderr, "Usage: %s <file>\n", argv[0]);
         return 1;
     }
 
+#if defined(__x86_64__)
+    amd64_cpu_tests(&info);
+#endif  /* __x86_64__ */
+
     buf = read_file(argv[1], &buf_size);
-    encrypt(buf, buf_size);
+    encrypt(&info, buf, buf_size);
     writeback_file(argv[1], buf, buf_size);
     free(buf);
 

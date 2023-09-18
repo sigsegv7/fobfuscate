@@ -1,6 +1,8 @@
-CFLAGS = -pedantic
+CFLAGS = -pedantic -Iinclude/
+CFILES = src/main.c
+ASMFILES = src/sse_accel.S
 CC = gcc
 
-bin/fobfuscate: main.c
+bin/fobfuscate: $(CFILES) $(ASMFILES)
 	mkdir -p $(@D)
 	$(CC) $(CFLAGS) $^ -o $@
