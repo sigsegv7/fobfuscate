@@ -41,5 +41,5 @@
     pcmpeqb %xmm1, %xmm1
     pxor %xmm0, %xmm1
 
-    movdqu %xmm0, (%rax)
+    movdqu %xmm1, (%rax)
     retq
