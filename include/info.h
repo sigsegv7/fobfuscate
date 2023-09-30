@@ -30,6 +30,8 @@
 #ifndef INFO_H
 #define INFO_H
 
+#include <stdint.h>
+
 struct cpu_info {
     uint8_t has_sse2 : 1;
     uint8_t has_sse3 : 1;
