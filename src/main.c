@@ -62,7 +62,7 @@ read_file(const char *fname, size_t *size_out)
     size_t bufsize;
 
     if (access(fname, F_OK) != 0) {
-        fprintf(stderr, "%s does not exist!\n");
+        fprintf(stderr, "%s does not exist!\n", fname);
         return NULL;
     }
 
@@ -217,6 +217,10 @@ main(int argc, const char **argv)
 #endif  /* __x86_64__ */
 
     buf = read_file(argv[1], &buf_size);
+    if (buf == NULL) {
+        return 1;
+    }
+
     encrypt(&info, buf, buf_size);
     writeback_file(argv[1], buf, buf_size);
     free(buf);
