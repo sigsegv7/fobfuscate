@@ -35,7 +35,7 @@
 #include <unistd.h>
 #include <info.h>
 #if defined(__x86_64__)
-#include <sse_accel.h>
+#include <accel.h>
 #endif  /* defined(__x86_64__) */
 
 #if __BYTE_ORDER__ != __ORDER_LITTLE_ENDIAN__
