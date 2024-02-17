@@ -144,7 +144,7 @@ encrypt(const struct cpu_info *info, char *buf, size_t buf_size)
 
 #if defined(__x86_64__)
     if (info->has_sse2 || info->has_sse3) {
-        step <<= 1;         /* Start at 16 bytes (128 bits) */
+        step = 16;         /* Start at 16 bytes (128 bits) */
     }
 #endif  /* defined(__x86_64__) */
 
