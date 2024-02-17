@@ -34,6 +34,6 @@ accel_invert256:
     vmovdqu (%rdi), %ymm1           // Load data into %ymm1
     vpcmpeqb %ymm0, %ymm0, %ymm0    // Set %ymm0 to all 1s
 
-    vpxor %ymm1, %ymm0, %ymm0       // NOT %xmm1; result stored in %xmm0
+    vpxor %ymm1, %ymm0, %ymm0       // NOT %ymm1; result stored in %ymm0
     vmovdqu %ymm0, (%rax)           // Writeback the result
     retq
