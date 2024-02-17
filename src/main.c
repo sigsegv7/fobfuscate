@@ -110,6 +110,14 @@ is_sse2_supported(void)
     return (edx & (1 << 26)) != 0;
 }
 
+static inline bool
+is_avx_supported(void)
+{
+    uint32_t ecx, unused;
+    cpuid(0x0000001, unused, unused, ecx, unused);
+    return (ecx & (1 << 28)) != 0;
+}
+
 static void
 amd64_cpu_tests(struct cpu_info *info)
 {
@@ -129,6 +137,11 @@ amd64_cpu_tests(struct cpu_info *info)
             info->has_sse2 = 1;
         }
     }
+
+    if (is_avx_supported()) {
+        printf("[?]: AVX supported, may use as optimization\n");
+        info->has_avx = 1;
+    }
 }
 #endif  /* defined(__x86_64__) */
 
@@ -146,12 +159,15 @@ encrypt(const struct cpu_info *info, char *buf, size_t buf_size)
     if (info->has_sse2 || info->has_sse3) {
         step = 16;         /* Start at 16 bytes (128 bits) */
     }
+    if (info->has_avx) {
+        step = 32;
+    }
 #endif  /* defined(__x86_64__) */
 
     while (current_pos < buf_size) {
         /* Ensure we aren't over 16 bytes and a power of two */
         if (step != 1) {
-            assert((step & 1) == 0 && step <= 16);
+            assert((step & 1) == 0 && step <= 32);
         }
 
         /* Ensure we don't cause any overflows */
@@ -160,6 +176,9 @@ encrypt(const struct cpu_info *info, char *buf, size_t buf_size)
             step >>= 1;
 
         switch (step) {
+        case 32:
+            accel_invert256((uintptr_t)buf + current_pos);
+            break;
         case 16:
             accel_invert128((uintptr_t)buf + current_pos);
             break;

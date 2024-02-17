@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Ian Marco Moffett and the VegaOS team.
+ * Copyright (c) 2023-2024 Ian Marco Moffett and the Osmora team.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -10,7 +10,7 @@
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in the
  *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of VegaOS nor the names of its
+ * 3. Neither the name of Osmora nor the names of its
  *    contributors may be used to endorse or promote products derived from
  *    this software without specific prior written permission.
  *
@@ -27,15 +27,13 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef INFO_H
-#define INFO_H
+.section .text
+.globl accel_invert256
 
-#include <stdint.h>
+accel_invert256:
+    vmovdqu (%rdi), %ymm1           // Load data into %ymm1
+    vpcmpeqb %ymm0, %ymm0, %ymm0    // Set %ymm0 to all 1s
 
-struct cpu_info {
-    uint8_t has_sse2 : 1;
-    uint8_t has_sse3 : 1;
-    uint8_t has_avx  : 1;
-};
-
-#endif      /* INFO_H */
+    vpxor %ymm1, %ymm0, %ymm0       // NOT %xmm1; result stored in %xmm0
+    vmovdqu %ymm0, (%rax)           // Writeback the result
+    retq

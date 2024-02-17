@@ -35,4 +35,8 @@
 __attribute__((naked))
 void accel_invert128(uint64_t addr);
 
+
+__attribute__((naked))
+void accel_invert256(uint64_t addr);
+
 #endif  /* ACCEL_H */
