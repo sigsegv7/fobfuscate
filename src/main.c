@@ -43,10 +43,10 @@
 #endif
 
 #if defined(__x86_64__)
-#define cpuid(level, a, b, c, d)					\
-  __asm__ __volatile__ ("cpuid\n\t"					\
-			: "=a" (a), "=b" (b), "=c" (c), "=d" (d)	\
-			: "0" (level))
+#define cpuid(level, a, b, c, d)                        \
+  __asm__ __volatile__ ("cpuid\n\t"                     \
+            : "=a" (a), "=b" (b), "=c" (c), "=d" (d)    \
+            : "0" (level))
 #endif
 
 #define flip_block(TMP_VAR, TYPE, BUF, POS)         \
