@@ -34,9 +34,6 @@
 #include <assert.h>
 #include <unistd.h>
 #include <info.h>
-#if defined(__x86_64__)
-#include <accel.h>
-#endif  /* defined(__x86_64__) */
 
 #if __BYTE_ORDER__ != __ORDER_LITTLE_ENDIAN__
 #error "Big endian machines not supported yet"
@@ -176,12 +173,30 @@ encrypt(const struct cpu_info *info, char *buf, size_t buf_size)
             step >>= 1;
 
         switch (step) {
+#if defined(__x86_64__)
         case 32:
-            accel_invert256((uintptr_t)buf + current_pos);
+            __asm__ __volatile__(
+                "vmovdqu (%0), %%ymm1\n"            /* Load data into %YMM1 */
+                "vpcmpeqb %%ymm0, %%ymm0, %%ymm0\n" /* Set %YMM0 to 1s */
+                "vpxor %%ymm1, %%ymm0, %%ymm0\n"    /* NOT %YMM1 -> %YMM0 */
+                "vmovdqu %%ymm0, (%1)\n"            /* Writeback result */
+                :
+                : "r" ((uintptr_t)buf + current_pos),
+                  "r" ((uintptr_t)buf + current_pos)
+            );
             break;
         case 16:
-            accel_invert128((uintptr_t)buf + current_pos);
+            __asm__ __volatile__(
+                "movdqu (%0), %%xmm0\n"     /* Read 128 bits -> %XMM0 */
+                "pcmpeqb %%xmm1, %%xmm1\n"  /* Set %XMM1 to all 1s */
+                "pxor %%xmm0, %%xmm1\n"     /* NOT %XMM0 -> %XMM1 */
+                "movdqu %%xmm1, (%0)\n"
+                :
+                : "r" ((uintptr_t)buf + current_pos),
+                  "r" ((uintptr_t)buf + current_pos)
+            );
             break;
+#endif
         case 8:
             flip_block(tmp, uint64_t, buf, current_pos);
             break;
