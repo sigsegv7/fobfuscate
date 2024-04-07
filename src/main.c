@@ -143,7 +143,7 @@ amd64_cpu_tests(struct cpu_info *info)
 #endif  /* defined(__x86_64__) */
 
 static char *
-encrypt(const struct cpu_info *info, char *buf, size_t buf_size)
+obfuscate(const struct cpu_info *info, char *buf, size_t buf_size)
 {
     size_t current_pos;
     size_t step;
@@ -236,7 +236,7 @@ main(int argc, const char **argv)
         return 1;
     }
 
-    encrypt(&info, buf, buf_size);
+    obfuscate(&info, buf, buf_size);
     writeback_file(argv[1], buf, buf_size);
     free(buf);
 
