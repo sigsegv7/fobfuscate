@@ -35,6 +35,8 @@
 #include <unistd.h>
 #include <info.h>
 
+#define DEFAULT_FILENAME "fob"
+
 #if __BYTE_ORDER__ != __ORDER_LITTLE_ENDIAN__
 #error "Big endian machines not supported yet"
 #endif
@@ -59,7 +61,6 @@ read_file(const char *fname, size_t *size_out)
     size_t bufsize;
 
     if (access(fname, F_OK) != 0) {
-        fprintf(stderr, "%s does not exist!\n", fname);
         return NULL;
     }
 
@@ -216,14 +217,32 @@ obfuscate(const struct cpu_info *info, char *buf, size_t buf_size)
 }
 
 int
-main(int argc, const char **argv)
+main(int argc, char **argv)
 {
     size_t buf_size;
     char *buf;
     struct cpu_info info = { 0 };
+    int8_t opt;
+    char *output = DEFAULT_FILENAME;
+    char *input = NULL;
 
-    if (argc < 2) {
+    while ((opt = getopt(argc, (char *const *)argv, "o:")) != -1)
+    {
+        if (opt == 'o') {
+            output = optarg;
+        }
+    }
+
+    input = argv[optind];
+
+    if (input == NULL) {
         fprintf(stderr, "Usage: %s <file>\n", argv[0]);
+        return 1;
+    }
+
+    buf = read_file(input, &buf_size);
+    if (buf == NULL) {
+        fprintf(stderr, "Failed to read %s. Does it exist?\n", input);
         return 1;
     }
 
@@ -231,14 +250,11 @@ main(int argc, const char **argv)
     amd64_cpu_tests(&info);
 #endif  /* __x86_64__ */
 
-    buf = read_file(argv[1], &buf_size);
-    if (buf == NULL) {
-        return 1;
-    }
-
     obfuscate(&info, buf, buf_size);
-    writeback_file(argv[1], buf, buf_size);
-    free(buf);
+    writeback_file(output, buf, buf_size);
 
+    fprintf(stdout, "Written to %s\n", output);
+
+    free(buf);
     return 0;
 }
