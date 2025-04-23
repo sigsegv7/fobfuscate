@@ -111,9 +111,9 @@ is_sse2_supported(void)
 static inline bool
 is_avx_supported(void)
 {
-    uint32_t ecx, unused;
-    cpuid(0x0000001, unused, unused, ecx, unused);
-    return (ecx & (1 << 28)) != 0;
+    uint32_t ebx, unused;
+    cpuid(0x0000001, unused, ebx, unused, unused);
+    return (ebx & (1 << 5)) != 0;
 }
 
 static void
